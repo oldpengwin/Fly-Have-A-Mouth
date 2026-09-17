@@ -73,10 +73,9 @@ MAX_WORDS = _i("MAX_WORDS", 10)
 MIN_WORD_LEN = _i("MIN_WORD_LEN", 2)
 # Second randomiser: each word gets a RANDOM target length in [WORD_LEN_MIN,
 # WORD_LEN_MAX], and the fly must land a legible word of EXACTLY that many
-# letters before moving on. 2-3 is watchable (~12-20s/word); 4 is a long grind
-# (hundreds of keystrokes); 5 barely exists in the default dictionary.
+# letters before moving on. Now supports 2-5 letter words with expanded vocab.
 WORD_LEN_MIN = _i("WORD_LEN_MIN", 2)
-WORD_LEN_MAX = _i("WORD_LEN_MAX", 3)
+WORD_LEN_MAX = _i("WORD_LEN_MAX", 5)
 # max keystrokes per second, wall-clock, so replay stays watchable (the live
 # brain is usually slower than this on its own).
 PRESS_HZ = _f("PRESS_HZ", 3.0)

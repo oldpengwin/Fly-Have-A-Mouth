@@ -64,6 +64,9 @@ class MouthController:
         self._thread: Optional[threading.Thread] = None
         self.decision_steps = max(1, int(round(cfg.DECISION_MS / brain.dt_ms)))
         self._press_dt = 1.0 / max(0.05, cfg.PRESS_HZ)
+        # Animation sync: delay between setting target_key and committing the letter
+        # This gives the fly time to fly to the key before it appears as "hit"
+        self._fly_animation_delay = 0.35  # seconds, tunable for visual pacing
         # empty raster layout so idle viewers see the neuron grid before spikes
         self.state.neuro_cols = [[0] * n for n in readout.pool_layout()]
 
@@ -133,6 +136,9 @@ class MouthController:
                          + (("  " + " ".join(s.completed_words)) if s.completed_words else ""))
             s.seq += 1
 
+            # Track timing for animation sync
+            last_press_time = 0.0
+            
             while not self._stop.is_set():
                 counts = self.brain.step_window(self.decision_steps)  # real motor spikes
                 letter, _pc = self.readout.decide(counts)
@@ -149,8 +155,19 @@ class MouthController:
                     s.just_wiped = False
                     s.seq += 1
                     continue
-                if self._press(letter, target):        # True == this word is done
-                    break
+                
+                # Check if we need to commit a pending letter (animation delay elapsed)
+                if hasattr(s, 'pending_letter') and s.pending_letter is not None:
+                    if now - last_press_time >= self._fly_animation_delay:
+                        if self._commit_pending_letter():
+                            break  # word completed
+                
+                # Only process new key press if no pending letter
+                if not (hasattr(s, 'pending_letter') and s.pending_letter is not None):
+                    if self._press(letter, target):        # True == this word is done
+                        last_press_time = now
+                        break
+                    last_press_time = now
 
         self.brain.set_driving(False)
         if self._stop.is_set():
@@ -176,10 +193,30 @@ class MouthController:
         Returns True when the word is completed."""
         s, cfg = self.state, self.cfg
         s.just_wiped = False
-        s.last_key = letter; s.target_key = letter
-        s.buffer += letter
+        # First: set target_key to tell the fly where to fly
+        s.target_key = letter
+        # Don't set last_key or update buffer yet - wait for animation sync
+        # Store pending info for later commit
+        s.pending_letter = letter
+        s.pending_target = target
         s.mood = max(0.0, s.mood - cfg.MOOD_DECAY_PER_PRESS)
+        return False  # Word completion checked in _commit_pending_letter
 
+    def _commit_pending_letter(self) -> bool:
+        """Commit the pending letter to the buffer after animation delay.
+        Returns True if the word is completed."""
+        s, cfg = self.state, self.cfg
+        if not hasattr(s, 'pending_letter') or s.pending_letter is None:
+            return False
+        
+        letter = s.pending_letter
+        target = s.pending_target
+        # Now that fly has reached the key, mark it as hit and add to buffer
+        s.last_key = letter
+        s.buffer += letter
+        s.pending_letter = None
+        s.pending_target = None
+        
         if self.dict.is_word_of_len(s.buffer, target):
             s.completed_words.append(s.buffer)
             s.words_done += 1
