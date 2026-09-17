@@ -30,12 +30,9 @@ from .settings import Settings
 
 def make_bot(controller: MouthController, cfg, settings: Settings):
     intents = discord.Intents.default()
-    intents.message_content = True      # privileged -- enable in the Dev Portal
+    # No privileged intents needed - bot only reacts to mentions, not message content
     intents.voice_states = True
     bot = commands.Bot(command_prefix="!fly ", intents=intents)
-
-    def _strip_mentions(msg):
-        return re.sub(r"<@!?\d+>", "", msg.content or "").strip().lower()
 
     async def _join_voice(guild: discord.Guild):
         """Connect (or move) to the configured voice channel of this guild."""
@@ -83,18 +80,10 @@ def make_bot(controller: MouthController, cfg, settings: Settings):
             return
         if bot.user not in msg.mentions:
             return
-        rest = _strip_mentions(msg)
         name = msg.author.display_name
 
-        if rest.startswith(cfg.POKE_KEYWORD):
-            controller.poke(name)
-            try:
-                await msg.add_reaction("\U0001FAB0")
-            except Exception:
-                pass
-            await msg.channel.send(f"*{name} taps the glass — the fly panics briefly* \U0001FAB0")
-            return
-
+        # Without message_content intent, we can't parse commands like "poke"
+        # Any mention triggers a typing request
         busy = controller.is_busy()
         pos = controller.submit(Request(name, msg.author.id, msg.channel.id))
         if not busy and pos == 0:
