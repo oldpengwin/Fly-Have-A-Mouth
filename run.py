@@ -88,8 +88,10 @@ async def serve(no_bot: bool) -> None:
                                 watch_channel_id=config.CHANNEL_ID,
                                 voice_channel_id=config.VOICE_CHANNEL_ID)
             bot, completion_poster = make_bot(ctl, config, settings)
+            # Start the bot first so it can log in and become ready
+            await bot.start(config.DISCORD_TOKEN)
+            # Now create tasks after bot is connected
             tasks.append(asyncio.create_task(completion_poster()))
-            tasks.append(asyncio.create_task(bot.start(config.DISCORD_TOKEN)))
 
     await asyncio.gather(*tasks)
 
