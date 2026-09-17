@@ -150,16 +150,24 @@ def make_bot(controller: MouthController, cfg, settings: Settings):
         await bot.wait_until_ready()
         loop = asyncio.get_running_loop()
         while not bot.is_closed():
-            comp = await loop.run_in_executor(None, controller.completions.get)
-            channel = bot.get_channel(comp.channel_id)
-            if channel is None:
-                try:
-                    channel = await bot.fetch_channel(comp.channel_id)
-                except Exception:
-                    continue
-            await channel.send(
-                f"\U0001FAB0 <@{comp.requester_id}> the fly's brain legibly typed "
-                f"**{comp.word_count}** word(s):\n> {comp.sentence}\n"
-                f"*(the bowl is full. good fly.)*")
+            try:
+                comp = await loop.run_in_executor(None, controller.completions.get)
+                channel = bot.get_channel(comp.channel_id)
+                if channel is None:
+                    try:
+                        channel = await bot.fetch_channel(comp.channel_id)
+                    except Exception as e:
+                        print(f"[bot] couldn't fetch channel {comp.channel_id}: {e}")
+                        continue
+                print(f"[bot] sending completion to channel {comp.channel_id}: {comp.sentence!r}")
+                await channel.send(
+                    f"\U0001FAB0 <@{comp.requester_id}> the fly's brain legibly typed "
+                    f"**{comp.word_count}** word(s):\n> {comp.sentence}\n"
+                    f"*(the bowl is full. good fly.)*")
+                print(f"[bot] successfully sent message")
+            except Exception as e:
+                print(f"[bot] error in completion_poster: {e}")
+                import traceback
+                traceback.print_exc()
 
     return bot, completion_poster
