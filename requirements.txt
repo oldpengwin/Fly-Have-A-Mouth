@@ -1,0 +1,8 @@
+# Fly Have A Mouth — runtime deps (the game + web viewer + Discord bot).
+# The LIVE brain additionally needs the flybrain checkout's own deps (flysim,
+# numpy/scipy, and torch for the GPU path) — see setup/SETUP.md.
+numpy>=1.24
+aiohttp>=3.9
+discord.py>=2.3
+PyNaCl>=1.5          # lets the bot connect to a voice channel (/fly vc, /fly join)
+python-dotenv>=1.0

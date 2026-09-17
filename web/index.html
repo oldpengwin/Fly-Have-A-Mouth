@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fly Have A Mouth</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div id="wrap">
+    <header>
+      <div class="titlewrap">
+        <h1>fly have a mouth</h1>
+        <div id="brain" class="sub">brain: —</div>
+      </div>
+      <div id="conn" class="pill">connecting…</div>
+    </header>
+
+    <div id="stage">
+      <canvas id="box"></canvas>
+    </div>
+
+    <footer>
+      <div class="stat"><span class="label">requester</span><span id="requester">—</span></div>
+      <div class="stat"><span class="label">progress</span><span id="progress">idle</span></div>
+      <div class="stat"><span class="label">queue</span><span id="queue">0</span></div>
+      <div class="stat"><span class="label">mood</span>
+        <span class="bar"><i id="moodbar"></i></span>
+      </div>
+      <div class="stat"><span class="label">bowl</span>
+        <span class="bar"><i id="bowlbar"></i></span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/sim.js"></script>
+</body>
+</html>
