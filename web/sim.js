@@ -72,8 +72,10 @@
       } else if (next.buffer.length < prev.bufLen && next.buffer.length === 0 && next.mode === "typing") {
         events.wipe = 1; boxShake = 6;
       }
-      if (next.last_key && next.last_key !== prev.lastKey && next.mode === "typing") {
-        aimAt(next.target_key || next.last_key);
+      // Fly animation sync: when target_key changes, fly to that key first.
+      // When last_key changes (after animation delay), the letter appears in buffer.
+      if (next.target_key && next.target_key !== prev.targetKey && next.mode === "typing") {
+        aimAt(next.target_key);
       }
       if (next.poke_flash > 0.6 && S && next.poke_flash > S.poke_flash) boxShake = 10;
       // accumulate real spikes into the decaying raster glow
@@ -89,7 +91,8 @@
           }
         }
       }
-      prev = { seq: next.seq, completed: doneNow, bufLen: next.buffer.length, lastKey: next.last_key };
+      prev = { seq: next.seq, completed: doneNow, bufLen: next.buffer.length, 
+               lastKey: next.last_key, targetKey: next.target_key };
     }
     S = next;
     if (brainEl) brainEl.textContent = "brain: " + (S.brain_label || "—");

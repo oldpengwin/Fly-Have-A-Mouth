@@ -20,6 +20,11 @@ class WorldState:
     last_key: Optional[str] = None          # last key struck
     target_key: Optional[str] = None        # key the fly is flying at
     just_wiped: bool = False
+    
+    # For animation-synced keystrokes: pending_letter/target hold the next key
+    # until the fly animation reaches it (so letter appears AFTER fly hits)
+    pending_letter: Optional[str] = None
+    pending_target: Optional[int] = None
 
     completed_words: List[str] = field(default_factory=list)
     words_done: int = 0
